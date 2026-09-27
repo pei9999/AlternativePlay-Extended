@@ -16,6 +16,25 @@ namespace AlternativePlay.Models
         public int SelectedIndex => this.ConfigurationData.Selected;
         public PlayModeSettings Current => this.ConfigurationData.PlayModeSettings[this.ConfigurationData.Selected];
 
+        public event Action PresetNameChanged;
+
+        public bool RenamePlayModeSetting(int index, PlayModeSettings expected, string name)
+        {
+            var settings = this.GetPlayModeSetting(index);
+            // A modal must not rename a different preset after a deletion/reorder.
+            if (settings == null || !ReferenceEquals(settings, expected)) return false;
+            var previous = settings.PresetName;
+            settings.PresetName = PlayModeSettings.NormalizePresetName(name);
+            try
+            {
+                // Save the same indexed preset; only its display metadata was changed.
+                this.SaveConfiguration();
+            }
+            catch { settings.PresetName = previous; throw; }
+            this.PresetNameChanged?.Invoke();
+            return true;
+        }
+
         /// <summary>
         /// Sets the current <see cref="PlayModeSettings"/> to use to play to <paramref name="index"/>
         /// </summary>

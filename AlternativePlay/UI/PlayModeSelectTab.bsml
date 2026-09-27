@@ -13,7 +13,7 @@
 
           <horizontal pref-width="20" child-expand-width="true">
             <img preserve-aspect="true" pref-width="5" pref-height="5" img-color="~SelectedColor" source="~PlayModeIcon00" />
-            <text text="~Mode" color="~SelectedColor" font-size="4" />
+            <text text="~DisplayName" hover-hint="~DisplayHint" pref-width="15" word-wrapping="false" overflow-mode="Ellipsis" rich-text="false" color="~SelectedColor" font-size="4" />
           </horizontal>
 
           <horizontal pref-width="12" pad-right="2" child-expand-width="true">

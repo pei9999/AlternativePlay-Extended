@@ -15,7 +15,7 @@
         <horizontal>
           <horizontal pref-width="20" child-expand-width="true">
             <img preserve-aspect="true" pref-width="5" pref-height="5" source="~PlayModeIcon00" />
-            <text text="~Mode" font-size="4" />
+            <text text="~DisplayName" hover-hint="~DisplayHint" pref-width="15" word-wrapping="false" overflow-mode="Ellipsis" rich-text="false" font-size="4" />
           </horizontal>
 
           <horizontal pref-width="12" pad-right="2" child-expand-width="true">
@@ -37,11 +37,14 @@
             <img preserve-aspect="true" pref-width="5" pref-height="5" source="~GameModifierIcon04" />
           </horizontal>
 
-          <button pad-left="3" text="Delete" pref-width="24" pref-height="8" on-click="OnDeleteClicked" hover-hint="Delete this configuration" />
+          <button text="Rename" pref-width="14" pref-height="8" on-click="OnRenameClicked" hover-hint="Name this preset (32 characters). ENTER saves; CANCEL discards; PASTE accepts Unicode from the clipboard." />
+          <button pad-left="3" text="Delete" pref-width="14" pref-height="8" on-click="OnDeleteClicked" hover-hint="Delete this configuration" />
 
         </horizontal>
       </custom-list>
     </vertical>
+
+    <modal-keyboard id="RenameKeyboard" clear-on-open="false" on-enter="OnRenameConfirmed" click-off-closes="true" />
 
     <!-- Delete Modal -->
     <modal id="DeleteModal" size-delta-x="100" size-delta-y="50" click-off-closes="true" >

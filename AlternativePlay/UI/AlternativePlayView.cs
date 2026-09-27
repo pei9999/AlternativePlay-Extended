@@ -4,6 +4,7 @@ using BeatSaberMarkupLanguage.Components;
 using BeatSaberMarkupLanguage.ViewControllers;
 using HMUI;
 using System.Linq;
+using System.Globalization;
 using Zenject;
 
 namespace AlternativePlay.UI
@@ -20,6 +21,48 @@ namespace AlternativePlay.UI
 
         private int deleteIndex; // Caches the index to be deleted for after the Delete Modal is done
 
+        private int renameIndex;
+        private PlayModeSettings renameSettings;
+        private bool renameKeyboardConfigured;
+
+        [UIComponent(nameof(RenameKeyboard))]
+        public ModalKeyboard RenameKeyboard;
+
+        private void ShowRenameModal(int index)
+        {
+            var settings = this.configuration.GetPlayModeSetting(index);
+            if (settings == null) return;
+            this.renameIndex = index;
+            this.renameSettings = settings;
+            var keyboard = this.RenameKeyboard.Keyboard;
+            if (!this.renameKeyboardConfigured)
+            {
+                // BSML 1.12.5 QWERTY leaves the rest of the CLEAR row empty.
+                keyboard.AddKeys("@-30,11 [PASTE]/20 [CANCEL]/20");
+                keyboard.SetAction("PASTE", _ => this.RenameKeyboard.SetText(
+                    PlayModeSettings.NormalizePresetName(UnityEngine.GUIUtility.systemCopyBuffer) ?? string.Empty));
+                keyboard.SetAction("CANCEL", _ => { this.renameSettings = null; this.RenameKeyboard.ModalView.Hide(true); });
+                keyboard.SetAction("⬅", _ =>
+                {
+                    var text = keyboard.KeyboardText.text ?? string.Empty;
+                    var starts = StringInfo.ParseCombiningCharacters(text);
+                    this.RenameKeyboard.SetText(starts.Length == 0 ? string.Empty : text.Substring(0, starts[starts.Length - 1]));
+                });
+                keyboard.KeyboardText.richText = false;
+                this.renameKeyboardConfigured = true;
+            }
+            this.RenameKeyboard.ModalView.Show(true);
+            this.RenameKeyboard.SetText(PlayModeSettings.NormalizePresetName(settings.PresetName) ?? string.Empty);
+        }
+
+        [UIAction(nameof(OnRenameConfirmed))]
+        public void OnRenameConfirmed(string name)
+        {
+            if (this.configuration.RenamePlayModeSetting(this.renameIndex, this.renameSettings, name))
+                this.RefreshConfigurations(this.renameIndex);
+            this.renameSettings = null;
+        }
+
         /// <summary>
         /// Reloads the table with the latest configuration data
         /// </summary>
@@ -28,7 +71,7 @@ namespace AlternativePlay.UI
         {
             // Convert configuration settings to the class used for the list
             var list = this.configuration.ConfigurationData.PlayModeSettings
-                .Select((settings, i) => new PlayModeSelectOption(this.configuration.ConfigurationData, i, this.ShowDeleteModal))
+                .Select((settings, i) => new PlayModeSelectOption(this.configuration.ConfigurationData, i, this.ShowDeleteModal, this.ShowRenameModal))
                 .ToList();
 
             this.SelectModeList.TableView.ClearSelection();

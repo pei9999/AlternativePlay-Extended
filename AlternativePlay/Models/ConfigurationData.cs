@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Globalization;
+using System.Text;
 
 namespace AlternativePlay.Models
 {
@@ -52,6 +54,30 @@ namespace AlternativePlay.Models
         public static readonly List<string> RotationIncrementList = new List<string> { "0.1", "1", "5", "10", "30" };
 
         public PlayMode PlayMode { get; set; } = PlayMode.BeatSaber;
+
+        // Display metadata only. Preset selection and persistence continue to use list indexes.
+        public string PresetName { get; set; }
+        public const int PresetNameMaxLength = 32;
+
+        public static string NormalizePresetName(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return null;
+            var singleLine = new StringBuilder(name.Length);
+            foreach (char c in name)
+                singleLine.Append(char.IsControl(c) || c == '\u2028' || c == '\u2029' ? ' ' : c);
+            var result = new StringBuilder();
+            var elements = StringInfo.GetTextElementEnumerator(singleLine.ToString().Trim());
+            for (int count = 0; count < PresetNameMaxLength && elements.MoveNext(); count++)
+                result.Append(elements.GetTextElement());
+            var normalized = result.ToString().Trim();
+            return normalized.Length == 0 ? null : normalized;
+        }
+
+        public string GetPresetDisplayName(int index)
+        {
+            var name = NormalizePresetName(this.PresetName);
+            return name == null ? "Preset " + (index + 1) : (index + 1) + ": " + name;
+        }
 
         // Common Options
         public bool UseLeft { get; set; }
